@@ -6,7 +6,6 @@
 #
 # frozen_string_literal: true
 
-require "elastic_graph/graphql/scalar_coercion_adapters/valid_time_zones"
 require "elastic_graph/proto_ingestion/schema_definition/api_extension"
 
 module ElasticGraph
@@ -85,8 +84,8 @@ module ElasticGraph
           expect(config.fetch("fields")).to eq("Event" => {"visits" => {"type" => "SafeLong", "scalar" => "JsonSafeLong"}})
         end
 
-        it "includes the valid time zones only when a field needs them" do
-          with_zone = ingestion_config do |s|
+        it "names `TimeZone` fields so the indexer can validate them against `Support::VALID_TIME_ZONES`" do
+          config = ingestion_config do |s|
             s.object_type "Event" do |t|
               t.field "id", "ID"
               t.field "zone", "TimeZone"
@@ -94,16 +93,7 @@ module ElasticGraph
             end
           end
 
-          expect(with_zone.fetch("fields")).to eq("Event" => {"zone" => {"type" => "TimeZone"}})
-          expect(with_zone.fetch("time_zones")).to eq(GraphQL::ScalarCoercionAdapters::VALID_TIME_ZONES.to_a)
-          without_zone = ingestion_config do |s|
-            s.object_type "Event" do |t|
-              t.field "id", "ID"
-              t.index "events"
-            end
-          end
-
-          expect(without_zone).not_to include("time_zones")
+          expect(config).to eq("package_name" => "elasticgraph", "fields" => {"Event" => {"zone" => {"type" => "TimeZone"}}})
         end
 
         it "loads the registered indexer extension after a dump round trip" do

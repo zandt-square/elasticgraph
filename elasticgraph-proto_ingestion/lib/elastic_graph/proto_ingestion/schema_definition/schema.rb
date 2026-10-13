@@ -7,7 +7,6 @@
 # frozen_string_literal: true
 
 require "elastic_graph/errors"
-require "elastic_graph/graphql/scalar_coercion_adapters/valid_time_zones"
 require "elastic_graph/proto_ingestion/schema_definition/field_number_mappings"
 require "elastic_graph/proto_ingestion/schema_definition/schema_elements/enum_type_extension"
 require "elastic_graph/proto_ingestion/schema_definition/schema_elements/object_interface_and_union_extension"
@@ -117,14 +116,13 @@ module ElasticGraph
         end
 
         # Returns the ingestion facts the indexer needs that protobuf descriptors cannot express:
-        # private index field names, scalars with ingestion rules beyond their wire type, enum value
-        # names that removing the value prefix cannot recover, and the valid time zones when a
-        # `TimeZone` field needs them. Empty override sections are omitted.
+        # private index field names, scalars with ingestion rules beyond their wire type, and enum value
+        # names that removing the value prefix cannot recover. Empty override sections are omitted.
         #
         # @return [Hash<String, Object>]
         def ingestion_metadata
           types = proto_types
-          metadata = {
+          {
             "package_name" => @package_name,
             "fields" => types.grep(SchemaElements::ObjectInterfaceAndUnionExtension).filter_map do |type|
               overrides = type.proto_field_overrides
@@ -134,16 +132,7 @@ module ElasticGraph
               overrides = type.proto_enum_value_name_overrides
               [type.proto_name, overrides] unless overrides.empty?
             end.to_h
-          } # : ::Hash[::String, untyped]
-
-          # The indexer can't load GraphQL's time zone list, so it's included when a field needs it.
-          # `TimeZone` is a validated scalar, so every `TimeZone` field has an override naming it.
-          field_overrides = metadata.fetch("fields").values.flat_map(&:values)
-          if field_overrides.any? { |overrides| overrides.fetch("scalar") { overrides["type"] } == "TimeZone" }
-            metadata["time_zones"] = GraphQL::ScalarCoercionAdapters::VALID_TIME_ZONES.to_a
-          end
-
-          metadata.reject { |_, value| value.empty? }
+          }.reject { |_, value| value.empty? }
         end
 
         # Returns the stable protobuf number for a message field.
