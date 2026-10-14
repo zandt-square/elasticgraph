@@ -3147,6 +3147,75 @@ indexer_extension_modules:
 - extension_ref:
     name: ElasticGraph::JSONIngestion::IndexerExtension
     require_path: elastic_graph/json_ingestion/indexer_extension
+- extension_ref:
+    name: ElasticGraph::ProtoIngestion::IndexerExtension
+    require_path: elastic_graph/proto_ingestion/indexer_extension
+    config:
+      package_name: elasticgraph
+      fields:
+        GeoLocation:
+          latitude:
+            name_in_index: lat
+          longitude:
+            name_in_index: lon
+        TeamNestedFields:
+          seasons:
+            name_in_index: the_seasons
+        Team:
+          formed_on:
+            type: Date
+          forbes_valuations:
+            type: JsonSafeLong
+          nested_fields:
+            name_in_index: the_nested_fields
+        TeamRecord:
+          wins:
+            name_in_index: win_count
+          losses:
+            name_in_index: loss_count
+          last_win_on:
+            name_in_index: last_win_date
+            type: Date
+          first_win_on:
+            type: Date
+        TeamSeason:
+          record:
+            name_in_index: the_record
+        CoachProfile:
+          team_formed_on:
+            type: Date
+        GeneralManagerProfile:
+          team_formed_on:
+            type: Date
+        WidgetOptions:
+          the_size:
+            name_in_index: the_sighs
+        Widget:
+          workspace_id:
+            name_in_index: workspace_id2
+          cost_currency_introduced_on:
+            type: Date
+          created_at_time_of_day:
+            type: LocalTime
+          created_on:
+            type: Date
+          release_dates:
+            type: Date
+          the_options:
+            name_in_index: the_opts
+          weight_in_ng:
+            type: JsonSafeLong
+          metadata:
+            type: Untyped
+        Component:
+          widget_workspace_id:
+            name_in_index: widget_workspace_id3
+        OnlineStore:
+          established_on:
+            type: Date
+        PhysicalStore:
+          established_on:
+            type: Date
 object_types_by_name:
   Address:
     graphql_fields_by_name:
